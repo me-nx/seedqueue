@@ -113,6 +113,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.Whole.Bounds(min = -1, max = 500, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public long chunkMapFreezing = -1;
 
+    @Config.Category("troubleshooting")
+    public boolean checkMinMemory = true;
+
     @Config.Category("advanced")
     public boolean showAdvancedSettings = false;
 

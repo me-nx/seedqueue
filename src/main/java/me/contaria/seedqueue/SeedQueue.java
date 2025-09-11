@@ -15,10 +15,9 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.Version;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
-import net.minecraft.client.gui.screen.ProgressScreen;
-import net.minecraft.client.gui.screen.SaveLevelScreen;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.*;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.text.TranslatableText;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -50,14 +49,31 @@ public class SeedQueue implements ClientModInitializer {
         SeedQueueSounds.init();
     }
 
-    private static void checkRamAllocation() {
-        int recommendedMaxRam = 2000 + (config.maxCapacity * 250);
-        long difference = Math.abs((Runtime.getRuntime().maxMemory() / (1024 * 1024)) - recommendedMaxRam);
+    public static void checkRamAllocation() {
+        int allocatedMem = (int)(Runtime.getRuntime().maxMemory() / (1024 * 1024));
 
-        // Check offset of Max RAM from recommendedMaxRam to tolerate AA-like categories
-        // where your RAM allocation needs to be 1000 MB above due to high render distance, etc
-        if (difference > 1100) {
-            LOGGER.warn("SeedQueue (warning): Your current max allocated RAM ({} MB) is off by {} MB from our recommended max RAM allocation. It is recommended to set it to {} MB.", Runtime.getRuntime().maxMemory() / (1024 * 1024), difference, recommendedMaxRam);
+        int recommendedMinRam = 1800 + (config.maxCapacity * 180);
+
+        if (allocatedMem < recommendedMinRam) {
+            Screen screen = new ConfirmScreen(
+                (shouldShowAgain) -> {
+                    SeedQueue.config.checkMinMemory = shouldShowAgain;
+					try {
+						SeedQueue.config.container.save();
+					} catch (IOException e) {
+						LOGGER.error("Failed to save the SeedQueue config", e);
+					}
+
+					MinecraftClient.getInstance().openScreen(null);
+                },
+                new TranslatableText("seedqueue.menu.memoryWarning.title"),
+                // Add 128 MiB to the recommended amount to account for Runtime#maxMemory() inaccuracies
+                new TranslatableText("seedqueue.menu.memoryWarning.message", allocatedMem, recommendedMinRam + 128),
+                ScreenTexts.PROCEED,
+                new TranslatableText("seedqueue.menu.memoryWarning.doNotWarnAgain")
+            );
+
+            MinecraftClient.getInstance().openScreen(screen);
         }
     }
 
