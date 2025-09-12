@@ -4,6 +4,7 @@ import com.google.gson.JsonParseException;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.debug.SeedQueueSystemInfo;
 import me.contaria.seedqueue.debug.SeedQueueWatchdog;
+import me.contaria.seedqueue.gui.MemoryWarningScreen;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
@@ -17,7 +18,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.*;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.TranslatableText;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -44,37 +44,31 @@ public class SeedQueue implements ClientModInitializer {
     public static final ThreadLocal<SeedQueueEntry> LOCAL_ENTRY = new ThreadLocal<>();
     public static SeedQueueEntry currentEntry;
 
+    public static boolean memoryWarningShown = false;
+
     @Override
     public void onInitializeClient() {
         SeedQueueSounds.init();
     }
 
-    public static void checkRamAllocation() {
+    /**
+     * @return true if a warning was shown
+     */
+    public static boolean checkRamAllocation() {
         int allocatedMem = (int)(Runtime.getRuntime().maxMemory() / (1024 * 1024));
 
         int recommendedMinRam = 1800 + (config.maxCapacity * 180);
 
         if (allocatedMem < recommendedMinRam) {
-            Screen screen = new ConfirmScreen(
-                (shouldShowAgain) -> {
-                    SeedQueue.config.checkMinMemory = shouldShowAgain;
-					try {
-						SeedQueue.config.container.save();
-					} catch (IOException e) {
-						LOGGER.error("Failed to save the SeedQueue config", e);
-					}
-
-					MinecraftClient.getInstance().openScreen(null);
-                },
-                new TranslatableText("seedqueue.menu.memoryWarning.title"),
+            MinecraftClient.getInstance().openScreen(
                 // Add 128 MiB to the recommended amount to account for Runtime#maxMemory() inaccuracies
-                new TranslatableText("seedqueue.menu.memoryWarning.message", allocatedMem, recommendedMinRam + 128),
-                ScreenTexts.PROCEED,
-                new TranslatableText("seedqueue.menu.memoryWarning.doNotWarnAgain")
+                new MemoryWarningScreen(allocatedMem, recommendedMinRam + 128)
             );
 
-            MinecraftClient.getInstance().openScreen(screen);
+            return true;
         }
+
+        return false;
     }
 
     /**

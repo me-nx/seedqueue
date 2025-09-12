@@ -17,7 +17,6 @@
     "accessor.WorldRendererAccessor",
     "client.CreateWorldScreenMixin",
     "client.MinecraftClientMixin",
-    "client.TitleScreenMixin",
     "client.WorldGenerationProgressLoggerMixin",
     "client.WorldGenerationProgressTrackerMixin",
     "client.debug.DebugHudMixin",

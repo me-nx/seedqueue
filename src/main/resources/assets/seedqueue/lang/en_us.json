@@ -8,7 +8,8 @@
   "seedqueue.menu.layout_exception.description": "Failed with %s, check the log for more information.",
 
   "seedqueue.menu.memoryWarning.title": "§6§lNot enough memory allocated",
-  "seedqueue.menu.memoryWarning.message": "SeedQueue might not have enough memory available (%d MiB). Try allocating at least %d MiB.",
+  "seedqueue.menu.memoryWarning.message": "SeedQueue might not have enough memory available (%d MiB). Try allocating at least %d MiB or lowering max queued seeds.",
+  "seedqueue.menu.memoryWarning.wikiLink": "Read more on the SeedQueue wiki",
   "seedqueue.menu.memoryWarning.doNotWarnAgain": "Do not warn again",
 
   "seedqueue.menu.benchmark.title": "SeedQueue Benchmark",
