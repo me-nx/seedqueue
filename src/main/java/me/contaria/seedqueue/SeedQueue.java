@@ -59,7 +59,7 @@ public class SeedQueue implements ClientModInitializer {
 
         int recommendedMinRam = 1800 + (config.maxCapacity * 180);
 
-        if (allocatedMem < recommendedMinRam) {
+        if (allocatedMem < recommendedMinRam && config.maxCapacity != 0) {
             MinecraftClient.getInstance().openScreen(
                 // Add 128 MiB to the recommended amount to account for Runtime#maxMemory() inaccuracies
                 new MemoryWarningScreen(allocatedMem, recommendedMinRam + 128)

@@ -352,8 +352,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Override
     public void onSave(JsonObject jsonObject) {
-        SpeedrunConfig.super.onSave(jsonObject);
-
         // Changing the config can change whether the warning should be shown
         SeedQueue.memoryWarningShown = false;
     }

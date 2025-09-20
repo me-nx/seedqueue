@@ -8,8 +8,9 @@
   "seedqueue.menu.layout_exception.description": "Failed with %s, check the log for more information.",
 
   "seedqueue.menu.memoryWarning.title": "§6§lNot enough memory allocated",
-  "seedqueue.menu.memoryWarning.message": "SeedQueue might not have enough memory available (%d MiB). Try allocating at least %d MiB or lowering max queued seeds.",
-  "seedqueue.menu.memoryWarning.wikiLink": "Read more on the SeedQueue wiki",
+  "seedqueue.menu.memoryWarning.message": "SeedQueue might not have enough memory available (%d MiB). Try allocating at least %d MiB or lowering Max Queued Seeds.",
+  "seedqueue.menu.memoryWarning.messageLowerQueued": "SeedQueue might not have enough memory available (%d MiB). Try lowering 'Max Queued Seeds'.",
+  "seedqueue.menu.memoryWarning.wikiLinkInfo": "Click on this link to read more on the SeedQueue Wiki:",
   "seedqueue.menu.memoryWarning.doNotWarnAgain": "Do not warn again",
 
   "seedqueue.menu.benchmark.title": "SeedQueue Benchmark",
@@ -133,5 +134,5 @@
   "speedrunapi.config.seedqueue.option.benchmarkResets.description": "The default amount of resets done when starting a benchmark.\nYou can start a benchmark using the \"Start Benchmark\" keybind and cancel it before it reaches the configured amount of resets using the \"Stop Benchmark\" keybind.",
   "speedrunapi.config.seedqueue.option.showChunkMaps": "Chunkmap Overlay",
   "speedrunapi.config.seedqueue.option.showChunkMaps.description": "Renders an overlay with all the chunkmaps of currently generating seeds.",
-  "speedrunapi.config.seedqueue.option.checkMinMemory": "Check allocated memory"
+  "speedrunapi.config.seedqueue.option.checkMinMemory": "Check Allocated Memory"
 }

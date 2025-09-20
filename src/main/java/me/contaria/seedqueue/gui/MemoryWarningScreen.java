@@ -3,8 +3,9 @@ package me.contaria.seedqueue.gui;
 import me.contaria.seedqueue.SeedQueue;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConfirmChatLinkScreen;
-import net.minecraft.client.gui.screen.ConfirmScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.Rect2i;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.*;
@@ -12,51 +13,81 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
 
 import java.io.IOException;
+import java.util.List;
 
-public class MemoryWarningScreen extends ConfirmScreen {
+public class MemoryWarningScreen extends Screen {
 	static final String WIKI_URI = "https://github.com/contariaa/seedqueue/wiki/Troubleshooting#not-enough-memory";
 
-	static MutableText WIKI_TEXT = new TranslatableText("seedqueue.menu.memoryWarning.wikiLink");
-	static MutableText HOVERED_WIKI_TEXT = WIKI_TEXT
-		.shallowCopy()
+	static final MutableText HOVERED_WIKI_LINK = new LiteralText(WIKI_URI)
 		.styled(style -> style.withFormatting(Formatting.UNDERLINE));
 
-	boolean mouseOverWikiText = false;
+	final Text message;
+	List<StringRenderable> messageParts;
+	int wikiLinkY;
 
 	public MemoryWarningScreen(int allocatedMem, int recommendedMinMem) {
-		super(
-			(shouldShowAgain) -> {
-				if (!shouldShowAgain) {
-					SeedQueue.config.checkMinMemory = false;
+		super(new TranslatableText("seedqueue.menu.memoryWarning.title"));
 
-					try {
-						SeedQueue.config.container.save();
-					} catch (IOException e) {
-						SeedQueue.LOGGER.error("failed to save the SeedQueue config", e);
-					}
-				}
+		this.message = new TranslatableText("seedqueue.menu.memoryWarning.message", allocatedMem, recommendedMinMem);
+	}
 
-				MinecraftClient.getInstance().openScreen(null);
-			},
-			new TranslatableText("seedqueue.menu.memoryWarning.title"),
-			new TranslatableText("seedqueue.menu.memoryWarning.message", allocatedMem, recommendedMinMem),
-			ScreenTexts.PROCEED,
-			new TranslatableText("seedqueue.menu.memoryWarning.doNotWarnAgain")
-		);
+	@Override
+	protected void init() {
+		super.init();
+
+		this.messageParts = this.textRenderer.wrapLines(this.message, this.width - 50);
+
+		int btnXBase = this.width / 2 - 155;
+		int btnY = this.height / 6 + 100;
+
+		this.addButton(new ButtonWidget(btnXBase, btnY, 150, 20, ScreenTexts.PROCEED, (_btn) ->
+				MinecraftClient.getInstance().openScreen(null)
+		));
+
+		Text ignoreWarningText = new TranslatableText("seedqueue.menu.memoryWarning.doNotWarnAgain");
+
+		this.addButton(new ButtonWidget(btnXBase + 160, btnY, 150, 20, ignoreWarningText, (_btn) -> {
+			SeedQueue.config.checkMinMemory = false;
+
+			try {
+				SeedQueue.config.container.save();
+			} catch (IOException e) {
+				SeedQueue.LOGGER.error("failed to save the SeedQueue config", e);
+			}
+
+			MinecraftClient.getInstance().openScreen(null);
+		}));
 	}
 
 	@Override
 	public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-		super.render(matrices, mouseX, mouseY, delta);
+		this.renderBackground(matrices);
+		this.drawCenteredText(matrices, this.textRenderer, this.title, this.width / 2, 70, 0xffffff);
+
+		int nextLineY = 90;
+
+		for (StringRenderable line : messageParts) {
+			this.drawCenteredText(matrices, this.textRenderer, line, this.width / 2, nextLineY, 0xffffff);
+			nextLineY += 9;
+		}
+
+		nextLineY += 9;
+
+		Text wikiLinkInfo = new TranslatableText("seedqueue.menu.memoryWarning.wikiLinkInfo");
+		this.drawCenteredText(matrices, this.textRenderer, wikiLinkInfo, this.width / 2, nextLineY, 0xffffff);
+		nextLineY += 9;
 
 		this.drawCenteredText(
 			matrices,
 			this.textRenderer,
-			this.mouseOverWikiText ? HOVERED_WIKI_TEXT : WIKI_TEXT,
+			this.mouseOverWikiText(mouseX, mouseY) ? HOVERED_WIKI_LINK : StringRenderable.plain(WIKI_URI),
 			this.width / 2,
-			this.height / 6 + 76,
+			nextLineY,
 			0xffffff
 		);
+		wikiLinkY = nextLineY;
+
+		super.render(matrices, mouseX, mouseY, delta);
 	}
 
 	@Override
@@ -80,18 +111,12 @@ public class MemoryWarningScreen extends ConfirmScreen {
 		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
-	@Override
-	public void mouseMoved(double mouseX, double mouseY) {
-		this.mouseOverWikiText = mouseOverWikiText((int) mouseX, (int) mouseY);
-	}
-
 	private boolean mouseOverWikiText(int mouseX, int mouseY) {
-		int wikiTextWidth = this.textRenderer.getWidth(WIKI_TEXT);
+		int wikiTextWidth = this.textRenderer.getWidth(WIKI_URI);
 
 		int startX = this.width / 2 - wikiTextWidth / 2;
-		int startY = this.height / 6 + 76;
 
-		Rect2i wikiTextRect = new Rect2i(startX, startY, wikiTextWidth, textRenderer.fontHeight);
+		Rect2i wikiTextRect = new Rect2i(startX, wikiLinkY, wikiTextWidth, textRenderer.fontHeight);
 
 		return wikiTextRect.contains(mouseX, mouseY);
 	}
@@ -99,7 +124,7 @@ public class MemoryWarningScreen extends ConfirmScreen {
 	@Override
 	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
 		if (keyCode == 256) {
-			this.callback.accept(true);
+			MinecraftClient.getInstance().openScreen(null);
 			return true;
 		} else {
 			return super.keyPressed(keyCode, scanCode, modifiers);
