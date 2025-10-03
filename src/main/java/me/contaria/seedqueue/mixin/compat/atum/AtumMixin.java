@@ -12,6 +12,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ProgressScreen;
 import net.minecraft.client.gui.screen.Screen;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -30,6 +31,13 @@ public abstract class AtumMixin {
             )
     )
     private static void openSeedQueueWallScreen(MinecraftClient client, Screen screen, Operation<Void> original) {
+        if (!SeedQueue.memoryWarningShown && SeedQueue.config.checkMinMemory) {
+            if (SeedQueue.checkRamAllocation()) {
+                SeedQueue.memoryWarningShown = true;
+                return;
+            }
+        }
+
         if (!SeedQueue.isActive()) {
             original.call(client, screen);
             return;

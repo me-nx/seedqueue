@@ -113,6 +113,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.Whole.Bounds(min = -1, max = 500, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public long chunkMapFreezing = -1;
 
+    @Config.Category("troubleshooting")
+    public boolean checkMinMemory = true;
+
     @Config.Category("advanced")
     public boolean showAdvancedSettings = false;
 
@@ -345,6 +348,12 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Override
     public boolean isAvailable() {
         return !SeedQueue.isActive();
+    }
+
+    @Override
+    public void onSave(JsonObject jsonObject) {
+        // Changing the config can change whether the warning should be shown
+        SeedQueue.memoryWarningShown = false;
     }
 
     public static class WindowSize {

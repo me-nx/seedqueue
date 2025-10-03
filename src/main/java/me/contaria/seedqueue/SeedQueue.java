@@ -4,6 +4,7 @@ import com.google.gson.JsonParseException;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.debug.SeedQueueSystemInfo;
 import me.contaria.seedqueue.debug.SeedQueueWatchdog;
+import me.contaria.seedqueue.gui.MemoryWarningScreen;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
@@ -15,9 +16,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.Version;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
-import net.minecraft.client.gui.screen.ProgressScreen;
-import net.minecraft.client.gui.screen.SaveLevelScreen;
-import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.*;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,9 +44,31 @@ public class SeedQueue implements ClientModInitializer {
     public static final ThreadLocal<SeedQueueEntry> LOCAL_ENTRY = new ThreadLocal<>();
     public static SeedQueueEntry currentEntry;
 
+    public static boolean memoryWarningShown = false;
+
     @Override
     public void onInitializeClient() {
         SeedQueueSounds.init();
+    }
+
+    /**
+     * @return true if a warning was shown
+     */
+    public static boolean checkRamAllocation() {
+        int allocatedMem = (int)(Runtime.getRuntime().maxMemory() / (1024 * 1024));
+
+        int recommendedMinRam = 1800 + (config.maxCapacity * 180);
+
+        if (allocatedMem < recommendedMinRam && config.maxCapacity != 0) {
+            MinecraftClient.getInstance().openScreen(
+                // Add 128 MiB to the recommended amount to account for Runtime#maxMemory() inaccuracies
+                new MemoryWarningScreen(allocatedMem, recommendedMinRam + 128)
+            );
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
